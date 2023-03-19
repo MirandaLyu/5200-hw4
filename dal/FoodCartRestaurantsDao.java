@@ -9,10 +9,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import review.model.Companies;
-import review.model.Restaurants;
-import review.model.TakeOutRestaurants;
-
 public class FoodCartRestaurantsDao extends RestaurantsDao{
 	// Single pattern: instantiation is limited to one object.
 	private static FoodCartRestaurantsDao instance = null;
@@ -28,21 +24,49 @@ public class FoodCartRestaurantsDao extends RestaurantsDao{
 	
 	public FoodCartRestaurants create(FoodCartRestaurants foodCartRestaurant) throws SQLException {
 		// Insert into the superclass table first.
-		create(new Restaurants(foodCartRestaurant.getName(), foodCartRestaurant.getDescription(), foodCartRestaurant.getMenu(),
+		Restaurants superF = create(new Restaurants(foodCartRestaurant.getName(), foodCartRestaurant.getDescription(), foodCartRestaurant.getMenu(),
 				foodCartRestaurant.getHours(), foodCartRestaurant.isActive(), foodCartRestaurant.getCuisine(), foodCartRestaurant.getStreet1(),
 				foodCartRestaurant.getStreet2(), foodCartRestaurant.getCity(), foodCartRestaurant.getState(), foodCartRestaurant.getZip(),
 				foodCartRestaurant.getCompany()));
 
-		String insertFoodCartRestaurant = "INSERT INTO FoodCartRestaurants(RestaurantId,Licensed) VALUES(?,?);";
+		String insertFoodCartRestaurant = "INSERT INTO FoodCartRestaurant(RestaurantId,Licensed) VALUES(?,?);";
 		Connection connection = null;
 		PreparedStatement insertStmt = null;
 		try {
 			connection = connectionManager.getConnection();
 			insertStmt = connection.prepareStatement(insertFoodCartRestaurant);
-			insertStmt.setInt(1, foodCartRestaurant.getRestaurantId());
+			insertStmt.setInt(1, superF.getRestaurantId());
 			insertStmt.setBoolean(2, foodCartRestaurant.isLicensed());
 			insertStmt.executeUpdate();
 			return foodCartRestaurant;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if(connection != null) {
+				connection.close();
+			}
+			if(insertStmt != null) {
+				insertStmt.close();
+			}
+		}
+	}
+	
+	public FoodCartRestaurants createFromRestaurants(Restaurants restaurant, boolean licensed) throws SQLException {
+
+		String insertTakeOutRestaurant = "INSERT INTO FoodCartRestaurant(RestaurantId,Licensed) VALUES(?,?);";
+		Connection connection = null;
+		PreparedStatement insertStmt = null;
+		try {
+			connection = connectionManager.getConnection();
+			insertStmt = connection.prepareStatement(insertTakeOutRestaurant);
+			insertStmt.setInt(1, restaurant.getRestaurantId());
+			insertStmt.setBoolean(2, licensed);
+			insertStmt.executeUpdate();
+			return new FoodCartRestaurants(restaurant.getRestaurantId(), restaurant.getName(), restaurant.getDescription(),
+					restaurant.getMenu(), restaurant.getHours(), restaurant.isActive(), restaurant.getCuisine(),
+					restaurant.getStreet1(), restaurant.getStreet2(), restaurant.getCity(), restaurant.getState(),
+					restaurant.getZip(), restaurant.getCompany(), licensed);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw e;
@@ -61,7 +85,7 @@ public class FoodCartRestaurantsDao extends RestaurantsDao{
 	 * This runs a DELETE statement.
 	 */
 	public FoodCartRestaurants delete(FoodCartRestaurants foodCartRestaurant) throws SQLException {
-		String deleteFoodCartRestaurant = "DELETE FROM FoodCartRestaurants WHERE RestaurantId=?;";
+		String deleteFoodCartRestaurant = "DELETE FROM FoodCartRestaurant WHERE RestaurantId=?;";
 		Connection connection = null;
 		PreparedStatement deleteStmt = null;
 		try {
@@ -103,10 +127,10 @@ public class FoodCartRestaurantsDao extends RestaurantsDao{
 	public FoodCartRestaurants getFoodCartRestaurantById(int foodCartRestaurantId) throws SQLException {
 		// To build an BlogUser object, we need the Persons record, too.
 		String selectFoodCartRestaurant =
-			"SELECT FoodCartRestaurants.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Licensed " +
-			"FROM FoodCarttRestaurants INNER JOIN Restaurants " +
-			"  ON FoodCartRestaurants.RestaurantId = Restaurants.RestaurantId " +
-			"WHERE FoodCartRestaurants.RestaurantId=?;";
+			"SELECT FoodCartRestaurant.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Licensed " +
+			"FROM FoodCartRestaurant INNER JOIN Restaurants " +
+			"  ON FoodCartRestaurant.RestaurantId = Restaurants.RestaurantId " +
+			"WHERE FoodCartRestaurant.RestaurantId=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;
 		ResultSet results = null;
@@ -154,13 +178,13 @@ public class FoodCartRestaurantsDao extends RestaurantsDao{
 		return null;
 	}
 
-	public List<FoodCartRestaurants> getSitDownRestaurantsByCompanyName(String companyName)
+	public List<FoodCartRestaurants> getFoodCartRestaurantsByCompanyName(String companyName)
 			throws SQLException {
 		List<FoodCartRestaurants> foodCartRestaurants = new ArrayList<FoodCartRestaurants>();
 		String selectFoodCartRestaurants =
-			"SELECT FoodCartRestaurants.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Licensed " +
-			"FROM FoodCartRestaurants INNER JOIN Restaurants " +
-			"  ON FoodCartRestaurants.RestaurantId = Restaurants.RestaurantId " +
+			"SELECT FoodCartRestaurant.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Licensed " +
+			"FROM FoodCartRestaurant INNER JOIN Restaurants " +
+			"  ON FoodCartRestaurant.RestaurantId = Restaurants.RestaurantId " +
 			"WHERE Restaurants.CompanyName=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;

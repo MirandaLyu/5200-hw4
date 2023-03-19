@@ -27,21 +27,23 @@ public class SitDownRestaurantsDao extends RestaurantsDao {
 		}
 		return instance;
 	}
+	
+	// there should be two ways to "create" SitDownRestaurants in sql
 
 	public SitDownRestaurants create(SitDownRestaurants sitDownRestaurant) throws SQLException {
 		// Insert into the superclass table first.
-		create(new Restaurants(sitDownRestaurant.getName(), sitDownRestaurant.getDescription(), sitDownRestaurant.getMenu(),
+		Restaurants superR = create(new Restaurants(sitDownRestaurant.getName(), sitDownRestaurant.getDescription(), sitDownRestaurant.getMenu(),
 				sitDownRestaurant.getHours(), sitDownRestaurant.isActive(), sitDownRestaurant.getCuisine(), sitDownRestaurant.getStreet1(),
 				sitDownRestaurant.getStreet2(), sitDownRestaurant.getCity(), sitDownRestaurant.getState(), sitDownRestaurant.getZip(),
 				sitDownRestaurant.getCompany()));
 
-		String insertSitDownRestaurant = "INSERT INTO SitDownRestaurants(RestaurantId,Capacity) VALUES(?,?);";
+		String insertSitDownRestaurant = "INSERT INTO SitDownRestaurant(RestaurantId,Capacity) VALUES(?,?);";
 		Connection connection = null;
 		PreparedStatement insertStmt = null;
 		try {
 			connection = connectionManager.getConnection();
 			insertStmt = connection.prepareStatement(insertSitDownRestaurant);
-			insertStmt.setInt(1, sitDownRestaurant.getRestaurantId());
+			insertStmt.setInt(1, superR.getRestaurantId());
 			insertStmt.setInt(2, sitDownRestaurant.getCapacity());
 			insertStmt.executeUpdate();
 			return sitDownRestaurant;
@@ -57,24 +59,42 @@ public class SitDownRestaurantsDao extends RestaurantsDao {
 			}
 		}
 	}
+	
+	public SitDownRestaurants createFromRestaurants(Restaurants restaurant, int capacity) throws SQLException {
 
-	/**
-	 * Update the LastName of the BlogUsers instance.
-	 * This runs a UPDATE statement.
-	 */
-//	public SitDownRestaurants updateLastName(SitDownRestaurants blogUser, String newLastName) throws SQLException {
-//		// The field to update only exists in the superclass table, so we can
-//		// just call the superclass method.
-//		super.updateLastName(blogUser, newLastName);
-//		return blogUser;
-//	}
+		String insertSitDownRestaurant = "INSERT INTO SitDownRestaurant(RestaurantId,Capacity) VALUES(?,?);";
+		Connection connection = null;
+		PreparedStatement insertStmt = null;
+		try {
+			connection = connectionManager.getConnection();
+			insertStmt = connection.prepareStatement(insertSitDownRestaurant);
+			insertStmt.setInt(1, restaurant.getRestaurantId());
+			insertStmt.setInt(2, capacity);
+			insertStmt.executeUpdate();
+			return new SitDownRestaurants(restaurant.getRestaurantId(), restaurant.getName(), restaurant.getDescription(),
+					restaurant.getMenu(), restaurant.getHours(), restaurant.isActive(), restaurant.getCuisine(),
+					restaurant.getStreet1(), restaurant.getStreet2(), restaurant.getCity(), restaurant.getState(),
+					restaurant.getZip(), restaurant.getCompany(), capacity);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if(connection != null) {
+				connection.close();
+			}
+			if(insertStmt != null) {
+				insertStmt.close();
+			}
+		}
+	}
+
 
 	/**
 	 * Delete the BlogUsers instance.
 	 * This runs a DELETE statement.
 	 */
 	public SitDownRestaurants delete(SitDownRestaurants sitDownRestaurant) throws SQLException {
-		String deleteSitDownRestaurant = "DELETE FROM SitDownRestaurants WHERE RestaurantId=?;";
+		String deleteSitDownRestaurant = "DELETE FROM SitDownRestaurant WHERE RestaurantId=?;";
 		Connection connection = null;
 		PreparedStatement deleteStmt = null;
 		try {
@@ -116,10 +136,10 @@ public class SitDownRestaurantsDao extends RestaurantsDao {
 	public SitDownRestaurants getSitDownRestaurantById(int sitDownRestaurantId) throws SQLException {
 		// To build an BlogUser object, we need the Persons record, too.
 		String selectSitDownRestaurant =
-			"SELECT SitDownRestaurants.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName, Capacity " +
-			"FROM SitDownRestaurants INNER JOIN Restaurants " +
-			"  ON SitDownRestaurants.RestaurantId = Restaurants.RestaurantId " +
-			"WHERE SitDownRestaurants.RestaurantId=?;";
+			"SELECT SitDownRestaurant.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName, Capacity " +
+			"FROM SitDownRestaurant INNER JOIN Restaurants " +
+			"  ON SitDownRestaurant.RestaurantId = Restaurants.RestaurantId " +
+			"WHERE SitDownRestaurant.RestaurantId=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;
 		ResultSet results = null;
@@ -172,9 +192,9 @@ public class SitDownRestaurantsDao extends RestaurantsDao {
 			throws SQLException {
 		List<SitDownRestaurants> sitDownRestaurants = new ArrayList<SitDownRestaurants>();
 		String selectSitDownRestaurants =
-			"SELECT SitDownRestaurants.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Capacity " +
-			"FROM SitDownRestaurants INNER JOIN Restaurants " +
-			"  ON SitDownRestaurants.RestaurantId = Restaurants.RestaurantId " +
+			"SELECT SitDownRestaurant.RestaurantId AS RestaurantId,Name,Description,Menu,Hours,Active,CuisineType,Street1,Street2,City,State,Zip,CompanyName,Capacity " +
+			"FROM SitDownRestaurant INNER JOIN Restaurants " +
+			"  ON SitDownRestaurant.RestaurantId = Restaurants.RestaurantId " +
 			"WHERE Restaurants.CompanyName=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;

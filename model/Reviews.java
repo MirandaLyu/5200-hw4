@@ -7,11 +7,11 @@ public class Reviews {
 	protected int reviewId;
 	protected Date created;
 	protected String content;
-	protected float rating;
+	protected double rating;
 	protected Users user;
 	protected Restaurants restaurant;
 	
-	public Reviews(int reviewId, Date created, String content, float rating, Users user, Restaurants restaurant) {
+	public Reviews(int reviewId, Date created, String content, double rating, Users user, Restaurants restaurant) {
 		this.reviewId = reviewId;
 		this.created = created;
 		this.content = content;
@@ -24,7 +24,7 @@ public class Reviews {
 		this.reviewId = reviewId;
 	}
 
-	public Reviews(Date created, String content, float rating, Users user, Restaurants restaurant) {
+	public Reviews(Date created, String content, double rating, Users user, Restaurants restaurant) {
 		this.created = created;
 		this.content = content;
 		this.rating = rating;
@@ -56,11 +56,11 @@ public class Reviews {
 		this.content = content;
 	}
 
-	public float getRating() {
+	public double getRating() {
 		return rating;
 	}
 
-	public void setRating(float rating) {
+	public void setRating(double rating) {
 		this.rating = rating;
 	}
 

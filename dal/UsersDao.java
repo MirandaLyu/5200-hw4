@@ -78,36 +78,6 @@ public class UsersDao {
 		}
 	}
 
-	/**
-	 * Update the LastName of the Persons instance.
-	 * This runs a UPDATE statement.
-	 */
-//	public Persons updateLastName(Persons person, String newLastName) throws SQLException {
-//		String updatePerson = "UPDATE Persons SET LastName=? WHERE UserName=?;";
-//		Connection connection = null;
-//		PreparedStatement updateStmt = null;
-//		try {
-//			connection = connectionManager.getConnection();
-//			updateStmt = connection.prepareStatement(updatePerson);
-//			updateStmt.setString(1, newLastName);
-//			updateStmt.setString(2, person.getUserName());
-//			updateStmt.executeUpdate();
-//			
-//			// Update the person param before returning to the caller.
-//			person.setLastName(newLastName);
-//			return person;
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//			throw e;
-//		} finally {
-//			if(connection != null) {
-//				connection.close();
-//			}
-//			if(updateStmt != null) {
-//				updateStmt.close();
-//			}
-//		}
-//	}
 
 	/**
 	 * Delete the Persons instance.
@@ -143,13 +113,13 @@ public class UsersDao {
 	 * This runs a SELECT statement and returns a single Persons instance.
 	 */
 	public Users getUserByUserName(String userName) throws SQLException {
-		String selectPerson = "SELECT UserName,Password,FirstName,LastName,Email,Phone FROM Users WHERE UserName=?;";
+		String selectUser = "SELECT UserName,Password,FirstName,LastName,Email,Phone FROM Users WHERE UserName=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;
 		ResultSet results = null;
 		try {
 			connection = connectionManager.getConnection();
-			selectStmt = connection.prepareStatement(selectPerson);
+			selectStmt = connection.prepareStatement(selectUser);
 			selectStmt.setString(1, userName);
 			// Note that we call executeQuery(). This is used for a SELECT statement
 			// because it returns a result set. For more information, see:
@@ -166,8 +136,8 @@ public class UsersDao {
 				String lastName = results.getString("LastName");
 				String email = results.getString("Email");
 				String phone = results.getString("Phone");
-				Users person = new Users(resultUserName, password, firstName, lastName, email, phone);
-				return person;
+				Users user = new Users(resultUserName, password, firstName, lastName, email, phone);
+				return user;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -186,43 +156,4 @@ public class UsersDao {
 		return null;
 	}
 
-	/**
-	 * Get the matching Persons records by fetching from your MySQL instance.
-	 * This runs a SELECT statement and returns a list of matching Persons.
-	 */
-//	public List<Persons> getPersonsFromFirstName(String firstName) throws SQLException {
-//		List<Persons> persons = new ArrayList<Persons>();
-//		String selectPersons =
-//			"SELECT UserName,FirstName,LastName FROM Persons WHERE FirstName=?;";
-//		Connection connection = null;
-//		PreparedStatement selectStmt = null;
-//		ResultSet results = null;
-//		try {
-//			connection = connectionManager.getConnection();
-//			selectStmt = connection.prepareStatement(selectPersons);
-//			selectStmt.setString(1, firstName);
-//			results = selectStmt.executeQuery();
-//			while(results.next()) {
-//				String userName = results.getString("UserName");
-//				String resultFirstName = results.getString("FirstName");
-//				String lastName = results.getString("LastName");
-//				Persons person = new Persons(userName, resultFirstName, lastName);
-//				persons.add(person);
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//			throw e;
-//		} finally {
-//			if(connection != null) {
-//				connection.close();
-//			}
-//			if(selectStmt != null) {
-//				selectStmt.close();
-//			}
-//			if(results != null) {
-//				results.close();
-//			}
-//		}
-//		return persons;
-//	}
 }

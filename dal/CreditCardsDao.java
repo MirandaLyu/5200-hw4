@@ -6,9 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,21 +38,10 @@ public class CreditCardsDao {
 			insertStmt = connection.prepareStatement(insertCreditCard);
 			insertStmt.setLong(1, creditCard.getCardNumber());
 			// Note: for the sake of simplicity, just set Picture to null for now.
-			insertStmt.setDate(2, (java.sql.Date) creditCard.getExpiration());
+			insertStmt.setDate(2, new java.sql.Date(creditCard.getExpiration().getTime()));
 			insertStmt.setString(3, creditCard.getUser().getUserName());
 			insertStmt.executeUpdate();
 			
-			// Retrieve the auto-generated key and set it, so it can be used by the caller.
-			// For more details, see:
-			// http://dev.mysql.com/doc/connector-j/en/connector-j-usagenotes-last-insert-id.html
-//			resultKey = insertStmt.getGeneratedKeys();
-//			int postId = -1;
-//			if(resultKey.next()) {
-//				postId = resultKey.getInt(1);
-//			} else {
-//				throw new SQLException("Unable to retrieve auto-generated key.");
-//			}
-//			blogPost.setPostId(postId);
 			return creditCard;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -84,11 +70,11 @@ public class CreditCardsDao {
 		try {
 			connection = connectionManager.getConnection();
 			updateStmt = connection.prepareStatement(updateExpiration);
-			updateStmt.setDate(1, (java.sql.Date) newExpiration);
+			updateStmt.setDate(1, new java.sql.Date(newExpiration.getTime()));
 			// Sets the Created timestamp to the current time.
-			Date newCreatedTimestamp = new Date();
+//			Date newCreatedTimestamp = new Date();
 //			updateStmt.setTimestamp(2, new Timestamp(newCreatedTimestamp.getTime()));
-			updateStmt.setLong(3, creditCard.getCardNumber());
+			updateStmt.setLong(2, creditCard.getCardNumber());
 			updateStmt.executeUpdate();
 
 			// Update the blogPost param before returning to the caller.

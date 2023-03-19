@@ -19,7 +19,7 @@ public class Restaurants {
 	protected Companies company;
 	
 	public enum CuisineType {
-		african, american, asian, european, hispanic
+		AFRICAN, AMERICAN, ASIAN, EUROPEAN, HISPANIC
 	}
 	
 	

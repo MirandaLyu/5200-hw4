@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -37,7 +38,7 @@ public class ReviewsDao {
 			insertStmt = connection.prepareStatement(insertReview,
 				Statement.RETURN_GENERATED_KEYS);
 			insertStmt.setString(1, review.getContent());
-			insertStmt.setFloat(2, review.getRating());
+			insertStmt.setDouble(2, review.getRating());
 			insertStmt.setString(3, review.getUser().getUserName());
 			insertStmt.setInt(4, review.getRestaurant().getRestaurantId());
 			insertStmt.executeUpdate();
@@ -72,14 +73,14 @@ public class ReviewsDao {
 	 * Delete the Reshares instance.
 	 * This runs a DELETE statement.
 	 */
-	public Recommendations delete(Recommendations reshare) throws SQLException {
-		String deleteReshare = "DELETE FROM Reshares WHERE ReshareId=?;";
+	public Reviews delete(Reviews review) throws SQLException {
+		String deleteReview = "DELETE FROM Reviews WHERE ReviewId=?;";
 		Connection connection = null;
 		PreparedStatement deleteStmt = null;
 		try {
 			connection = connectionManager.getConnection();
-			deleteStmt = connection.prepareStatement(deleteReshare);
-			deleteStmt.setInt(1, reshare.getReshareId());
+			deleteStmt = connection.prepareStatement(deleteReview);
+			deleteStmt.setInt(1, review.getReviewId());
 			deleteStmt.executeUpdate();
 
 			// Return null so the caller can no longer operate on the Persons instance.
@@ -105,30 +106,32 @@ public class ReviewsDao {
 	 * One alternative (possibly more efficient) is using a single SELECT statement
 	 * to join the Reshares, BlogPosts, BlogUsers tables and then build each object.
 	 */
-	public Recommendations getReshareById(int reshareId) throws SQLException {
-		String selectReshare =
-			"SELECT ReshareId,UserName,PostId " +
-			"FROM Reshares " +
-			"WHERE ReshareId=?;";
+	public Reviews getReviewById(int reviewId) throws SQLException {
+		String selectReview =
+			"SELECT ReviewId,Created,Content,Rating,UserName,RestaurantId " +
+			"FROM Reviews " +
+			"WHERE ReviewId=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;
 		ResultSet results = null;
 		try {
 			connection = connectionManager.getConnection();
-			selectStmt = connection.prepareStatement(selectReshare);
-			selectStmt.setInt(1, reshareId);
+			selectStmt = connection.prepareStatement(selectReview);
+			selectStmt.setInt(1, reviewId);
 			results = selectStmt.executeQuery();
-			SitDownRestaurantsDao blogUsersDao = SitDownRestaurantsDao.getInstance();
-			CreditCardsDao blogPostsDao = CreditCardsDao.getInstance();
+			UsersDao usersDao = UsersDao.getInstance();
+			RestaurantsDao restaurantsDao = RestaurantsDao.getInstance();
 			if(results.next()) {
-				int resultReshareId = results.getInt("ReshareId");
+				Date created =  new Date(results.getTimestamp("Created").getTime());
+				String content = results.getString("Content");
+				double rating = results.getDouble("Rating");
 				String userName = results.getString("UserName");
-				int postId = results.getInt("PostId");
+				int restaurantId = results.getInt("RestaurantId");
 				
-				SitDownRestaurants blogUser = blogUsersDao.getBlogUserFromUserName(userName);
-				Reservations blogPost = blogPostsDao.getBlogPostById(postId);
-				Recommendations reshare = new Recommendations(resultReshareId, blogUser, blogPost);
-				return reshare;
+				Users user = usersDao.getUserByUserName(userName);
+				Restaurants restaurant = restaurantsDao.getRestaurantById(restaurantId);
+				Reviews review = new Reviews(reviewId, created, content, rating, user, restaurant);
+				return review;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -150,27 +153,32 @@ public class ReviewsDao {
 	/**
 	 * Get the all the Reshares for a user.
 	 */
-	public List<Recommendations> getResharesForUser(SitDownRestaurants blogUser) throws SQLException {
-		List<Recommendations> reshares = new ArrayList<Recommendations>();
-		String selectReshares =
-			"SELECT ReshareId,UserName,PostId " +
-			"FROM Reshares " + 
+	public List<Reviews> getReviewsByUserName(String userName) throws SQLException {
+		List<Reviews> reviews = new ArrayList<Reviews>();
+		String selectReviews =
+			"SELECT ReviewId,Created,Content,Rating,UserName,RestaurantId " +
+			"FROM Reviews " + 
 			"WHERE UserName=?;";
 		Connection connection = null;
 		PreparedStatement selectStmt = null;
 		ResultSet results = null;
 		try {
 			connection = connectionManager.getConnection();
-			selectStmt = connection.prepareStatement(selectReshares);
-			selectStmt.setString(1, blogUser.getUserName());
+			selectStmt = connection.prepareStatement(selectReviews);
+			selectStmt.setString(1, userName);
 			results = selectStmt.executeQuery();
-			CreditCardsDao blogPostsDao = CreditCardsDao.getInstance();
+			UsersDao usersDao = UsersDao.getInstance();
+			RestaurantsDao restaurantsDao = RestaurantsDao.getInstance();
 			while(results.next()) {
-				int reshareId = results.getInt("ReshareId");
-				int postId = results.getInt("PostId");
-				Reservations blogPost = blogPostsDao.getBlogPostById(postId);
-				Recommendations reshare = new Recommendations(reshareId, blogUser, blogPost);
-				reshares.add(reshare);
+				int reviewId = results.getInt("ReviewId");
+				Date created =  new Date(results.getTimestamp("Created").getTime());
+				String content = results.getString("Content");
+				double rating = results.getDouble("Rating");
+				int restaurantId = results.getInt("RestaurantId");
+				Users user = usersDao.getUserByUserName(userName);
+				Restaurants restaurant = restaurantsDao.getRestaurantById(restaurantId);
+				Reviews review = new Reviews(reviewId, created, content, rating, user, restaurant);
+				reviews.add(review);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -186,6 +194,50 @@ public class ReviewsDao {
 				results.close();
 			}
 		}
-		return reshares;
+		return reviews;
+	}
+	
+	public List<Reviews> getReviewsByRestaurantId(int restaurantId) throws SQLException {
+		List<Reviews> reviews = new ArrayList<Reviews>();
+		String selectReviews =
+			"SELECT ReviewId,Created,Content,Rating,UserName,RestaurantId " +
+			"FROM Reviews " + 
+			"WHERE RestaurantId=?;";
+		Connection connection = null;
+		PreparedStatement selectStmt = null;
+		ResultSet results = null;
+		try {
+			connection = connectionManager.getConnection();
+			selectStmt = connection.prepareStatement(selectReviews);
+			selectStmt.setInt(1, restaurantId);
+			results = selectStmt.executeQuery();
+			UsersDao usersDao = UsersDao.getInstance();
+			RestaurantsDao restaurantsDao = RestaurantsDao.getInstance();
+			while(results.next()) {
+				int reviewId = results.getInt("ReviewId");
+				Date created =  new Date(results.getTimestamp("Created").getTime());
+				String content = results.getString("Content");
+				Float rating = results.getFloat("Rating");
+				String userName = results.getString("UserName");
+				Users user = usersDao.getUserByUserName(userName);
+				Restaurants restaurant = restaurantsDao.getRestaurantById(restaurantId);
+				Reviews review = new Reviews(reviewId, created, content, rating, user, restaurant);
+				reviews.add(review);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if(connection != null) {
+				connection.close();
+			}
+			if(selectStmt != null) {
+				selectStmt.close();
+			}
+			if(results != null) {
+				results.close();
+			}
+		}
+		return reviews;
 	}
 }
